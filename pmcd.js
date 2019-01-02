@@ -36,6 +36,22 @@ if (has_exec == has_sh_exec) {
 	parser.error('must specify either -e or -c (but not both)')
 }
 
+
+/// Setup
+
+const debug = require('debug')('pmc')
+debug.enabled = true
+
+function require_optional(package_name) {
+	try {
+		return require(package_name)
+	} catch (e) {
+		debug(e)
+		debug(`Please install package 'package_name'. It is marked as optional but it isn't for your use case.`)
+		process.exit(1)
+	}
+}
+
 const {
 	make_advertisement,
 	new_discover_node,
@@ -64,26 +80,25 @@ if (has_exec) {
 
 	if (argv.pty) {
 		// -e --pty
-		const PTY = require('@buckle2000/pty.js')
-		const debug_pty = require('debug')('pmc:pty')
-		debug_pty.enabled = true
-		debug_pty('Warning: --pty is experimental')
+		const PTY = require_optional('@buckle2000/pty.js')
+
+		debug('Warning: --pty is experimental')
 
 		on_connection_callback = function (socket) {
 			const p = PTY.spawn(program, args, {})
-			debug_pty('Spawned process %o in pseudo-terminal', argv.exec)
+			debug('Spawned process %o in pseudo-terminal', argv.exec)
 			p.stdout.pipe(socket)
 			socket.pipe(p.stdin)
 			p.on('close', () => {
 				socket.destroy()
 			})
 			p.on('error', err => {
-				debug_pty('Error: %O', err)
+				debug('Error: %O', err)
 			})
 		}
 	} else {
 		// -e
-		const execa = require('execa')
+		const execa = require_optional('execa')
 		on_connection_callback = function (socket) {
 			const p = execa(program, args, {
 				reject: false
@@ -93,7 +108,7 @@ if (has_exec) {
 	}
 } else {
 	// -c
-	const execa = require('execa')
+	const execa = require_optional('execa')
 	on_connection_callback = function (socket) {
 		const p = execa.shell(argv.sh_exec, {
 			reject: false
@@ -133,7 +148,7 @@ function setup_discovery(tcp_addr) {
 	const debug_d = require('debug')('pmc:discover')
 	debug_d.enabled = true
 
-	const ads = make_advertisement(argv.name, tcp_addr.port)
+	const ads = make_advertisement(argv.name, tcp_addr.port, argv.pty)
 	d.advertise(ads)
 	debug_d('%o service up', argv.name)
 
@@ -142,7 +157,7 @@ function setup_discovery(tcp_addr) {
 		if (is_ads_valid(node.advertisement)) {
 			const desc = describe_service(node)
 			if (desc.name === ads.promiscuousd.name &&
-				new Date(desc.createdAt) <= new Date(ads.promiscuousd.createdAt)) {
+				new Date(desc.created_at) <= new Date(ads.promiscuousd.created_at)) {
 				debug_d('Error: name collision with %s:%d', desc.address, desc.port)
 				process.exit(1)
 			}
