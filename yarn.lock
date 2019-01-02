@@ -2,6 +2,14 @@
 # yarn lockfile v1
 
 
+"@buckle2000/pty.js@^0.3.1":
+  version "0.3.1"
+  resolved "https://registry.yarnpkg.com/@buckle2000/pty.js/-/pty.js-0.3.1.tgz#cb7e20558daa77c073a69dd2fedfd5b64283ae1d"
+  integrity sha512-VhpelPvb2VbupnC4Eoq4QxrMhX53AQPGmyZ5dhLNgI8Yau8s/Ebquq/FfjCDIrB2+jItGCbdKrHxb1QrDcql0Q==
+  dependencies:
+    extend "~1.2.1"
+    nan "2.12.1"
+
 "@dashersw/node-discover@^1.0.4":
   version "1.0.4"
   resolved "https://registry.yarnpkg.com/@dashersw/node-discover/-/node-discover-1.0.4.tgz#3fd2aad22228e0ecf72bb069e9f0e06ef4bd5b82"
@@ -75,6 +83,11 @@ execa@^1.0.0:
     signal-exit "^3.0.0"
     strip-eof "^1.0.0"
 
+extend@~1.2.1:
+  version "1.2.1"
+  resolved "https://registry.yarnpkg.com/extend/-/extend-1.2.1.tgz#a0f5fd6cfc83a5fe49ef698d60ec8a624dd4576c"
+  integrity sha1-oPX9bPyDpf5J72mNYOyKYk3UV2w=
+
 get-stream@^4.0.0:
   version "4.1.0"
   resolved "https://registry.yarnpkg.com/get-stream/-/get-stream-4.1.0.tgz#c1b255575f3dc21d59bfc79cd3d2b46b1c3a54b5"
@@ -137,6 +150,11 @@ ms@^2.1.1:
   version "2.1.1"
   resolved "https://registry.yarnpkg.com/ms/-/ms-2.1.1.tgz#30a5864eb3ebb0a66f2ebe6d727af06a09d86e0a"
   integrity sha512-tgp+dl5cGk28utYktBsrFqA7HKgrhgPsg6Z/EfhWI4gl1Hwq8B/GmY/0oXZ6nF8hDVesS/FpnYaD/kOWhYQvyg==
+
+nan@2.12.1:
+  version "2.12.1"
+  resolved "https://registry.yarnpkg.com/nan/-/nan-2.12.1.tgz#7b1aa193e9aa86057e3c7bbd0ac448e770925552"
+  integrity sha512-JY7V6lRkStKcKTvHO5NVSQRv+RV+FIL5pvDoLiAtSL9pKlC5x9PKQcZDsq7m4FO4d57mkhC6Z+QhAh3Jdk5JFw==
 
 nanoid@^2.0.0:
   version "2.0.0"

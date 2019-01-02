@@ -1,7 +1,8 @@
 {
   "name": "promiscuousd",
-  "version": "0.1.2",
+  "version": "0.2.0",
   "dependencies": {
+    "@buckle2000/pty.js": "^0.3.1",
     "@dashersw/node-discover": "^1.0.4",
     "argparse": "^1.0.10",
     "debug": "^4.1.1",

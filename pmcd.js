@@ -16,16 +16,22 @@ parser.addArgument('name', {
 	help: 'name of this service'
 })
 parser.addArgument(['-e', '--exec'], {
-	help: 'Executes the given command',
+	help: 'Executes the given command.',
 	metavar: '<command>',
 })
 parser.addArgument(['-c', '--sh-exec'], {
-	help: 'Executes the given command in shell',
+	help: 'Executes the given command in shell.',
 	metavar: '<command>',
 })
+parser.addArgument(['--pty'], {
+	help: 'Use pseudo-terminal. Use with -e.',
+	action: 'storeTrue'
+})
+
 const argv = parser.parseArgs()
 const has_exec = argv.exec != null
 const has_sh_exec = argv.sh_exec != null
+
 if (has_exec == has_sh_exec) {
 	parser.error('must specify either -e or -c (but not both)')
 }
@@ -39,7 +45,7 @@ const {
 
 /// Set action
 
-function pipe_to_each_other(process, socket) {
+function pipe_to_each_other_and_die_together(process, socket) {
 	process.stdout.pipe(socket)
 	socket.pipe(process.stdin)
 	process.then(() => {
@@ -51,24 +57,48 @@ function pipe_to_each_other(process, socket) {
 
 let on_connection_callback
 
-const execa = require('execa')
-
 if (has_exec) {
-	on_connection_callback = function (socket) {
-		const _temp = argv.exec.split(/ +/)
-		const program = _temp[0]
-		const args = _temp.slice(1)
-		const process = execa(program, args, {
-			reject: false
-		})
-		pipe_to_each_other(process, socket)
+	const _temp = argv.exec.split(/ +/)
+	const program = _temp[0]
+	const args = _temp.slice(1)
+
+	if (argv.pty) {
+		// -e --pty
+		const PTY = require('@buckle2000/pty.js')
+		const debug_pty = require('debug')('pmc:pty')
+		debug_pty.enabled = true
+		debug_pty('Warning: --pty is experimental')
+
+		on_connection_callback = function (socket) {
+			const p = PTY.spawn(program, args, {})
+			debug_pty('Spawned process %o in pseudo-terminal', argv.exec)
+			p.stdout.pipe(socket)
+			socket.pipe(p.stdin)
+			p.on('close', () => {
+				socket.destroy()
+			})
+			p.on('error', err => {
+				debug_pty('Error: %O', err)
+			})
+		}
+	} else {
+		// -e
+		const execa = require('execa')
+		on_connection_callback = function (socket) {
+			const p = execa(program, args, {
+				reject: false
+			})
+			pipe_to_each_other_and_die_together(p, socket)
+		}
 	}
 } else {
+	// -c
+	const execa = require('execa')
 	on_connection_callback = function (socket) {
-		const process = execa.shell(argv.sh_exec, {
+		const p = execa.shell(argv.sh_exec, {
 			reject: false
 		})
-		pipe_to_each_other(process, socket)
+		pipe_to_each_other_and_die_together(p, socket)
 	}
 }
 
