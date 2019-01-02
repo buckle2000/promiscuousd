@@ -4,6 +4,7 @@
   "dependencies": {
     "@dashersw/node-discover": "^1.0.4",
     "argparse": "^1.0.10",
+    "arrgv": "^1.0.1",
     "debug": "^4.1.1",
     "joi": "^14.3.1",
     "netcat": "^1.4.0"

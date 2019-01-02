@@ -30,6 +30,11 @@ argparse@^1.0.10:
   dependencies:
     sprintf-js "~1.0.2"
 
+arrgv@^1.0.1:
+  version "1.0.1"
+  resolved "https://registry.yarnpkg.com/arrgv/-/arrgv-1.0.1.tgz#f7bcf4232ef3771af8d13085536e6d540e85d55f"
+  integrity sha512-49b0bFpWJh+svA8sdrVPMtRc6+uNwMVJiayKuvnAsde2j5UZTqZNxqUf1V8XWTkY8rqqeKzlTltMIAwmLiHtNQ==
+
 async-each-series@^1.1.0:
   version "1.1.0"
   resolved "https://registry.yarnpkg.com/async-each-series/-/async-each-series-1.1.0.tgz#f42fd8155d38f21a5b8ea07c28e063ed1700b138"

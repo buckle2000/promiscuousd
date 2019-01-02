@@ -74,7 +74,8 @@ function pipe_to_each_other_and_die_together(process, socket) {
 let on_connection_callback
 
 if (has_exec) {
-	const _temp = argv.exec.split(/ +/)
+	const split_argv_string = require('arrgv')
+	const _temp = split_argv_string(argv.exec)
 	const program = _temp[0]
 	const args = _temp.slice(1)
 
