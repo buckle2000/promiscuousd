@@ -92,9 +92,14 @@ if (has_exec) {
 			socket.pipe(p.stdin)
 			p.on('close', () => {
 				socket.destroy()
+				debug('Spawned process %o exited', argv.exec)
 			})
 			p.on('error', err => {
-				debug('Error: %O', err)
+				if (err.code === 'EIO') {
+					p.destroy()
+				} else {
+					debug('Spawned process error: %O', err)
+				}
 			})
 		}
 	} else {
@@ -130,9 +135,15 @@ nc.on('ready', () => {
 	debug_nc(`Listening at ${tcp_addr.address}:${tcp_addr.port}`)
 	setup_discovery(tcp_addr)
 })
+let conn_counter = 0
 nc.on('connection', socket => {
-	debug_nc(`Connection from ${socket.remoteAddress}:${socket.remotePort}`)
+	let conn_index = conn_counter
+	++conn_counter
+	debug_nc(`Connection (${conn_index}) started < ${socket.remoteAddress}:${socket.remotePort}`)
 	on_connection_callback(socket)
+	socket.on('close', () => {
+		debug_nc(`Connection (${conn_index}) ended`)
+	})
 	socket.on('error', err => {
 		throw err
 	})
