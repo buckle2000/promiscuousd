@@ -5,10 +5,11 @@ const API_VERSION = "1"
 
 const schema = Joi.object().keys({
     promiscuousd: Joi.object().keys({
-        version:   Joi.string().equal(API_VERSION).required(),
-        name:      Joi.string().min(1).required(),
-        port:      Joi.number().port().required(),
-        createdAt: Joi.date().iso().required(),
+        version:    Joi.string().equal(API_VERSION).required(),
+        name:       Joi.string().min(1).required(),
+        port:       Joi.number().port().required(),
+        created_at: Joi.date().iso().required(),
+        is_pty:     Joi.boolean(),
     }).required()
 }).required()
 
@@ -17,13 +18,14 @@ function is_ads_valid(ads) {
     return result.error === null
 }
 
-function make_advertisement(name, port) {
+function make_advertisement(name, port, is_pty) {
     const ads = {
         promiscuousd: {
             version: API_VERSION,
             name,
             port,
-            createdAt: new Date().toISOString()
+            is_pty,
+            created_at: new Date().toISOString()
         }
     }
     const result = Joi.validate(ads, schema)
@@ -40,7 +42,7 @@ function new_discover_node() {
 function describe_service(node) {
     return {
         address: node.address,
-        ...node.advertisement.promiscuousd // version name port createdAt
+        ...node.advertisement.promiscuousd // version name port created_at
     }
 }
 

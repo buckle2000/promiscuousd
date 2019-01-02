@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+
 'use strict'
 
 /// Parse args
@@ -19,8 +20,19 @@ parser.addArgument(['-t', '--timeout'], {
 	metavar: '<seconds>',
 	defaultValue: 5,
 })
+parser.addArgument(['--pty'], {
+	help: 'Set stdin to raw mode. Server must also use --tty or stdout will be wonky.',
+	action: 'storeTrue'
+})
 const argv = parser.parseArgs()
 
+// set raw mode if --pty
+if (argv.pty) process.stdin.setRawMode(true)
+
+/// Setup
+
+const debug = require('debug')('pmc')
+debug.enabled = true
 
 const {
 	make_advertisement,
@@ -54,12 +66,17 @@ d.on('added', node => {
 		if (desc.name === argv.name) {
 			if (piped) {
 				debug_d(`Already connected, ignoring service at ${desc.address}:${desc.port}`)
-				debug_d(`Warning: this should not happen`)
+				throw new Error(`This should not happen`)
 			} else {
 				clearTimeout(timeout_handle)
 				debug_d(`Found service`)
 				piped = true
 				d.stop()
+
+				if (!argv.pty && desc.is_pty)
+					debug(`Warning: server enabled --pty`)
+				if (argv.pty && !desc.is_pty)
+					debug(`Warning: server disabled --pty`)
 
 				const nc = new NetcatClient()
 				const debug_nc = require('debug')('pmc:netcat')
@@ -68,10 +85,10 @@ d.on('added', node => {
 				debug_nc(`Connecting to ${desc.address}:${desc.port}`)
 				process.stdin.pipe(
 					nc
-						.addr(desc.address)
-						.port(desc.port)
-						.connect()
-						.pipe(process.stdout).stream()
+					.addr(desc.address)
+					.port(desc.port)
+					.connect()
+					.pipe(process.stdout).stream()
 				)
 
 				nc.on('close', () => {
