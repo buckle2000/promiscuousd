@@ -20,14 +20,18 @@ parser.addArgument(['-t', '--timeout'], {
 	metavar: '<seconds>',
 	defaultValue: 5,
 })
+const AUTO_PTY = -1
 parser.addArgument(['--pty'], {
-	help: 'Set stdin to raw mode. Server must also use --tty or stdout will be wonky.',
-	action: 'storeTrue'
+	help: 'Force enable pseudo-terminal. Set stdin to raw mode. Server must also use --tty or stdout will be wonky.',
+	defaultValue: AUTO_PTY,
+	action: 'storeTrue',
+})
+parser.addArgument(['--no-pty'], {
+	dest: 'pty',
+	help: 'Force disable pseudo-terminal.',
+	action: 'storeFalse',
 })
 const argv = parser.parseArgs()
-
-// set raw mode if --pty
-if (argv.pty) process.stdin.setRawMode(true)
 
 /// Setup
 
@@ -73,10 +77,17 @@ d.on('added', node => {
 				piped = true
 				d.stop()
 
-				if (!argv.pty && desc.is_pty)
-					debug(`Warning: server enabled --pty`)
-				if (argv.pty && !desc.is_pty)
-					debug(`Warning: server disabled --pty`)
+				if (argv.pty === AUTO_PTY) {					
+					// auto pty mode
+					process.stdin.setRawMode(desc.is_pty)
+				} else {
+					// force pty
+					process.stdin.setRawMode(argv.pty)
+					if (!argv.pty && desc.is_pty)
+						debug(`Warning: server enabled --pty`)
+					if (argv.pty && !desc.is_pty)
+						debug(`Warning: server disabled --pty`)
+				}
 
 				const nc = new NetcatClient()
 				const debug_nc = require('debug')('pmc:netcat')
