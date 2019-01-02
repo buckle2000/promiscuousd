@@ -1,9 +1,5 @@
-const {
-	make_advertisement,
-	new_discover_node,
-	is_ads_valid,
-	describe_service,
-} = require('./utils')
+#!/usr/bin/env node
+'use strict'
 
 /// Parse args
 
@@ -32,6 +28,13 @@ const has_sh_exec = argv.sh_exec != null
 if (has_exec == has_sh_exec) {
 	parser.error('must specify either -e or -c (but not both)')
 }
+
+const {
+	make_advertisement,
+	new_discover_node,
+	is_ads_valid,
+	describe_service,
+} = require('./utils')
 
 /// Set action
 

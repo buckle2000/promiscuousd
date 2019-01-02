@@ -1,12 +1,17 @@
 {
+  "name": "promiscuousd",
   "version": "0.1.0",
   "dependencies": {
     "@dashersw/node-discover": "^1.0.4",
     "argparse": "^1.0.10",
-    "cote": "^0.18.3",
     "debug": "^4.1.1",
     "execa": "^1.0.0",
     "joi": "^14.3.1",
     "netcat": "^1.4.0"
+  },
+  "bin": {
+    "pmcd": "./pmcd.js",
+    "pmc-client": "./pmc-client.js",
+    "pmc-ls": "./pmc-ls.js"
   }
 }

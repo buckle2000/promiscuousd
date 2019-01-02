@@ -1,9 +1,5 @@
-const {
-	make_advertisement,
-	new_discover_node,
-	is_ads_valid,
-	describe_service,
-} = require('./utils')
+#!/usr/bin/env node
+'use strict'
 
 /// Parse args
 
@@ -14,76 +10,37 @@ const parser = new ArgumentParser({
 	version: require('./package.json').version,
 	addHelp: true,
 	description: 'promiscuousd client',
-	epilog: 'If neither -e nor -c is specified, stdin and stdout will be connected to the service',
 })
 parser.addArgument('name', {
 	help: 'name of the service to connect'
 })
-parser.addArgument(['-e', '--exec'], {
-	help: 'Executes the given command',
-	metavar: '<command>',
-})
-parser.addArgument(['-c', '--sh-exec'], {
-	help: 'Executes the given command in shell',
-	metavar: '<command>',
+parser.addArgument(['-t', '--timeout'], {
+	help: 'exit program if the service is not found in this much time (defaults to 5)',
+	metavar: '<seconds>',
+	defaultValue: 5,
 })
 const argv = parser.parseArgs()
-const has_exec = argv.exec != null
-const has_sh_exec = argv.sh_exec != null
-if (has_exec && has_sh_exec) {
-	parser.error('cannot specify both -e and -c')
-}
 
-/// Set action
 
-let get_stdio
-
-if (has_exec) {
-	const child_process = require('child_process')
-	get_stdio = function (close_cb) {
-		const _temp = argv.exec.split(/ +/)
-		const program = _temp[0]
-		const args = _temp.slice(1)
-		const process = child_process.spawn(program, args)
-		process.on('close', () => {
-			close_cb()
-		})
-		return {
-			stdin: process.stdin,
-			stdout: process.stdout,
-		}
-	}
-} else if (has_sh_exec) {
-	const execa = require('execa')
-	get_stdio = function (close_cb) {
-		const process = execa.shell(argv.sh_exec)
-		process.then(() => {
-			close_cb()
-		})
-		return {
-			stdin: process.stdin,
-			stdout: process.stdout,
-		}
-	}
-} else {
-	get_stdio = function (close_cb) {
-		process.on('exit', () => {
-			close_cb()
-		})
-		return {
-			stdin: process.stdin,
-			stdout: process.stdout,
-		}
-	}
-}
+const {
+	make_advertisement,
+	new_discover_node,
+	is_ads_valid,
+	describe_service,
+} = require('./utils')
 
 /// Setup peer to peer node
 
 const d = new_discover_node()
 const debug_d = require('debug')('pmc:discover')
-debug_d.enabled = true
+// debug_d.enabled = true
 
 debug_d('Searching for %o', argv.name)
+
+const timeout_handle = setTimeout(() => {
+	console.error('Timed out (maybe increase timeout with --timeout?')
+	process.exit(1)
+}, argv.timeout * 1000);
 
 // if found service, connect tcp to process
 
@@ -99,32 +56,31 @@ d.on('added', node => {
 				debug_d(`Already connected, ignoring service at ${desc.address}:${desc.port}`)
 				debug_d(`Warning: this should not happen`)
 			} else {
+				clearTimeout(timeout_handle)
 				debug_d(`Found service`)
 				piped = true
+				d.stop()
 
 				const nc = new NetcatClient()
 				const debug_nc = require('debug')('pmc:netcat')
-				debug_nc.enabled = true
+				// debug_nc.enabled = true
 
-				// get io streams
-				const {
-					stdin,
-					stdout
-				} = get_stdio(() => nc.close())
 				debug_nc(`Connecting to ${desc.address}:${desc.port}`)
-				stdout.pipe(
+				process.stdin.pipe(
 					nc
 						.addr(desc.address)
 						.port(desc.port)
 						.connect()
-						.pipe(stdin).stream()
+						.pipe(process.stdout).stream()
 				)
 
+				nc.on('close', () => {
+					process.exit()
+				})
 				nc.on('error', err => {
 					throw err
 					debug_nc('Error: %O', err)
 				})
-
 			}
 		}
 	}

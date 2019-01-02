@@ -1,8 +1,26 @@
+#!/usr/bin/env node
+'use strict'
+
+/// Parse args
+
+const {
+	ArgumentParser
+} = require('argparse')
+const parser = new ArgumentParser({
+	version: require('./package.json').version,
+	addHelp: true,
+	description: 'List promiscuousd services on current network'
+})
+const argv = parser.parseArgs()
+
+
 const {
     is_ads_valid,
     new_discover_node,
     describe_service
 } = require('./utils')
+
+/// Setup node
 
 const d = new_discover_node()
 const debug_d = require('debug')('pmc:discover')
