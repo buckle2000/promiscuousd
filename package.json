@@ -1,6 +1,6 @@
 {
   "name": "promiscuousd",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "dependencies": {
     "@dashersw/node-discover": "^1.0.4",
     "argparse": "^1.0.10",
