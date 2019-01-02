@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+
 'use strict'
 
 /// Parse args
@@ -38,30 +39,36 @@ const {
 
 /// Set action
 
+function pipe_to_each_other(process, socket) {
+	process.stdout.pipe(socket)
+	socket.pipe(process.stdin)
+	process.then(() => {
+		socket.destroy()
+	}).catch(err => {
+		throw err
+	})
+}
+
 let on_connection_callback
 
+const execa = require('execa')
+
 if (has_exec) {
-	const child_process = require('child_process')
 	on_connection_callback = function (socket) {
 		const _temp = argv.exec.split(/ +/)
 		const program = _temp[0]
 		const args = _temp.slice(1)
-		const process = child_process.spawn(program, args)
-		process.stdout.pipe(socket)
-		socket.pipe(process.stdin)
-		process.on('close', () => {
-			socket.destroy()
+		const process = execa(program, args, {
+			reject: false
 		})
+		pipe_to_each_other(process, socket)
 	}
 } else {
-	const execa = require('execa')
 	on_connection_callback = function (socket) {
-		const process = execa.shell(argv.sh_exec)
-		process.stdout.pipe(socket)
-		socket.pipe(process.stdin)
-		process.then(() => {
-			socket.destroy()
+		const process = execa.shell(argv.sh_exec, {
+			reject: false
 		})
+		pipe_to_each_other(process, socket)
 	}
 }
 
@@ -78,9 +85,11 @@ nc.on('ready', () => {
 	setup_discovery(tcp_addr)
 })
 nc.on('connection', socket => {
-	const remote_addr = socket.address()
-	debug_nc(`Connection from ${remote_addr.address}:${remote_addr.port}`)
+	debug_nc(`Connection from ${socket.remoteAddress}:${socket.remotePort}`)
 	on_connection_callback(socket)
+	socket.on('error', err => {
+		throw err
+	})
 })
 nc.on('error', err => {
 	throw err
