@@ -1,13 +1,11 @@
 const assert = require('assert')
 const Joi = require('joi');
 
-const C = {
-    API_VERSION: "1"
-}
+const API_VERSION = "1"
 
 const schema = Joi.object().keys({
     promiscuousd: Joi.object().keys({
-        version:   Joi.string().equal(C.API_VERSION).required(),
+        version:   Joi.string().equal(API_VERSION).required(),
         name:      Joi.string().min(1).required(),
         port:      Joi.number().port().required(),
         createdAt: Joi.date().iso().required(),
@@ -22,7 +20,7 @@ function is_ads_valid(ads) {
 function make_advertisement(name, port) {
     const ads = {
         promiscuousd: {
-            version: C.API_VERSION,
+            version: API_VERSION,
             name,
             port,
             createdAt: new Date().toISOString()
@@ -47,7 +45,6 @@ function describe_service(node) {
 }
 
 module.exports = {
-    C,
     is_ads_valid,
     make_advertisement,
     new_discover_node,
