@@ -2,6 +2,10 @@
 
 [![](https://img.shields.io/npm/v/promiscuousd.svg)](https://www.npmjs.com/package/promiscuousd) ![](https://img.shields.io/github/license/buckle2000/promiscuousd.svg)
 
+## TODO
+
+[ ] tty support (like mosh)
+
 ## Install
 
 ```
